@@ -1,0 +1,7 @@
+@SNSCakeBakery_Service_HostAddress = http://localhost:5107
+
+GET {{SNSCakeBakery_Service_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+SAmara14
