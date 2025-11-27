@@ -1,21 +1,43 @@
 using Microsoft.EntityFrameworkCore;
-using SNSCakeBakery_Service.Data; // adjust namespace as needed
+using SNSCakeBakery_Service.Data;
+using SNSCakeBakery_Service.Services.Interfaces;
+using SNSCakeBakery_Service.Services.Implementations;
+using SNSCakeBakery_Service.Helpers;
+using SNSCakeBakery_Service.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services
 builder.Services.AddControllers();
 
-// Register MySQL EF Core context
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+    )
+);
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// DI Registrations
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
+builder.Services.AddSingleton<JwtTokenGenerator>();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
+// Middleware
+app.UseMiddleware<JwtMiddleware>();
 
+// Swagger
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.MapControllers();
 app.Run();

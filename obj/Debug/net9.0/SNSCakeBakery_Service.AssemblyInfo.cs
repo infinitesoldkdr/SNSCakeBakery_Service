@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SNSCakeBakery_Service")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9194a926a5edf784ab59d0251b7b527c4a912ea9")]
 [assembly: System.Reflection.AssemblyProductAttribute("SNSCakeBakery_Service")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SNSCakeBakery_Service")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
