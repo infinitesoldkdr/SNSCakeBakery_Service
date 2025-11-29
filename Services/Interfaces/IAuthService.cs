@@ -4,6 +4,6 @@ namespace SNSCakeBakery_Service.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponse?> Login(LoginRequest request);
-    Task<AuthResponse?> Register(RegisterRequest request);
+    Task<AuthDto?> Login(LoginRequest request);
+    Task<AuthDto?> Register(RegisterRequest request);
 }

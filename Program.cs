@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SNSCakeBakery_Service.Data;
-using SNSCakeBakery_Service.Services.Interfaces;
-using SNSCakeBakery_Service.Services.Implementations;
 using SNSCakeBakery_Service.Helpers;
 using SNSCakeBakery_Service.Middleware;
+using SNSCakeBakery_Service.Services.Implementations;
+using SNSCakeBakery_Service.Services.Interfaces;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +23,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes("VERY_SECRET_KEY_CHANGE_THIS"))
+        };
+    });
 builder.Services.AddSingleton<JwtTokenGenerator>();
 
 builder.Services.AddEndpointsApiExplorer();

@@ -91,6 +91,7 @@ namespace SNSCakeBakery_Service.Controllers
             order.Size = dto.Size;
             order.Quantity = dto.Quantity;
             order.Notes = dto.Notes;
+            order.OrderDate = (DateTime)dto.OrderDate;
 
             await _context.SaveChangesAsync();
             return Ok(order);
@@ -125,5 +126,7 @@ namespace SNSCakeBakery_Service.Controllers
         public string Size { get; set; } = "";
         public int Quantity { get; set; }
         public string? Notes { get; set; }
+
+        public DateTime OrderDate { get; set; } = DateTime.Now;
     }
 }

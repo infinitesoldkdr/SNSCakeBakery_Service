@@ -3,13 +3,14 @@ using SNSCakeBakery_Service.Models;
 
 namespace SNSCakeBakery_Service.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class AppDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Order> Orders { get; set; }
+        public DbSet<Address> Addresses { get; set; }
         public DbSet<GoogleSyncLog> GoogleSyncLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

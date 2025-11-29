@@ -1,18 +1,20 @@
-using System;
-using System.Linq;
-using System.Web;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SNSCakeBakery.Web.Models; // your EF models namespace
 using SNSCakeBakery.Web.ViewModels; // if you use view models
+using SNSCakeBakery_Service.Data;
+using System;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
+
 
 namespace SNSCakeBakery.Web.Controllers
 {
     public class UserController : Controller
     {
-        private readonly ApplicationDbContext _db = new ApplicationDbContext();
+        private readonly AppDbContext _db = new AppDbContext();
 
         // GET: /user/me
         [HttpGet]

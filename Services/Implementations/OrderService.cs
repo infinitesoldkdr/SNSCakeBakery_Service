@@ -1,11 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using SNSCakeBakery_Service.Controllers;
 using SNSCakeBakery_Service.Data;
-using SNSCakeBakery_Service.DTOs;
 using SNSCakeBakery_Service.Models;
 using SNSCakeBakery_Service.Services.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace SNSCakeBakery_Service.Services
 {
@@ -18,16 +14,13 @@ namespace SNSCakeBakery_Service.Services
             _db = db;
         }
 
-        public async Task<Order> CreateOrderAsync(CreateOrderDto dto, string userId)
+        // ---------------------------
+        // CREATE ORDER
+        // ---------------------------
+        public async Task<Order?> CreateOrderAsync(string userId, Order order)
         {
-            var order = new Order
-            {
-                UserId = userId,
-                CakeType = dto.CakeType,
-                Size = dto.Size,
-                Message = dto.Message,
-                OrderDate = DateTime.UtcNow
-            };
+            order.UserId = userId;
+            order.OrderDate = DateTime.UtcNow;
 
             _db.Orders.Add(order);
             await _db.SaveChangesAsync();
@@ -35,7 +28,10 @@ namespace SNSCakeBakery_Service.Services
             return order;
         }
 
-        public async Task<IEnumerable<Order>> GetUserOrdersAsync(string userId)
+        // ---------------------------
+        // GET ALL ORDERS FOR USER
+        // ---------------------------
+        public async Task<List<Order>> GetOrdersByUserAsync(string userId)
         {
             return await _db.Orders
                 .Where(o => o.UserId == userId)
@@ -43,10 +39,52 @@ namespace SNSCakeBakery_Service.Services
                 .ToListAsync();
         }
 
-        public async Task<Order?> GetOrderByIdAsync(int id, string userId)
+        // ---------------------------
+        // GET ORDER BY ID (user-protected)
+        // ---------------------------
+        public async Task<Order?> GetOrderByIdAsync(string id, string userId)
         {
             return await _db.Orders
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+        }
+
+        // ---------------------------
+        // UPDATE ORDER
+        // ---------------------------
+        public async Task<Order?> UpdateOrderAsync(string id, string userId, Order updatedOrder)
+        {
+            var existing = await _db.Orders
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+
+            if (existing == null)
+                return null;
+
+            existing.CakeType = updatedOrder.CakeType;
+            existing.CakeSize = updatedOrder.CakeSize;
+            existing.Description = updatedOrder.Description;
+            existing.Price = updatedOrder.Price;
+            existing.NeedsDelivery = updatedOrder.NeedsDelivery;
+            existing.DeliveryDate = updatedOrder.DeliveryDate;
+
+            await _db.SaveChangesAsync();
+
+            return existing;
+        }
+
+        // ---------------------------
+        // DELETE ORDER
+        // ---------------------------
+        public async Task<bool> DeleteOrderAsync(string id, string userId)
+        {
+            var order = await _db.Orders
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+
+            if (order == null)
+                return false;
+
+            _db.Orders.Remove(order);
+            await _db.SaveChangesAsync();
+            return true;
         }
     }
 }

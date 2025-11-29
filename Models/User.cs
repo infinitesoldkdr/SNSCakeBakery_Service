@@ -5,7 +5,7 @@ namespace SNSCakeBakery_Service.Models
 {
     public class User
     {
-        public int Id { get; set; } // Primary key
+        public string Id { get; set; } // Primary key
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string FullName { get; set; }

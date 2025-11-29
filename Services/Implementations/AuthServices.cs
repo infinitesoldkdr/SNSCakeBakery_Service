@@ -18,7 +18,7 @@ public class AuthService : IAuthService
         _jwt = jwt;
     }
 
-    public async Task<AuthResponse?> Register(RegisterRequest request)
+    public async Task<AuthDto?> Register(RegisterRequest request)
     {
         if (await _db.Users.AnyAsync(x => x.Email == request.Email))
             return null;
@@ -33,7 +33,7 @@ public class AuthService : IAuthService
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        return new AuthResponse
+        return new AuthDto
         {
             Email = user.Email,
             FullName = user.FullName,
@@ -41,7 +41,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthResponse?> Login(LoginRequest request)
+    public async Task<AuthDto?> Login(LoginRequest request)
     {
         var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == request.Email);
         if (user == null) return null;
@@ -49,7 +49,7 @@ public class AuthService : IAuthService
         if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
             return null;
 
-        return new AuthResponse
+        return new AuthDto
         {
             Email = user.Email,
             FullName = user.FullName,
