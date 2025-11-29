@@ -8,7 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace SNSCakeBakery_Service.Services
+namespace SNSCakeBakery_Service.Services.Implementations
 {
     public class UserService : IUserService
     {
@@ -24,7 +24,7 @@ namespace SNSCakeBakery_Service.Services
         // ---------------------------
         // Register
         // ---------------------------
-        public async Task<User?> RegisterAsync( string password, string email)
+        public async Task<User?> RegisterAsync(string password, string email)
         {
             if (await _db.Users.AnyAsync(u => u.Email == email))
                 return null;
@@ -105,3 +105,4 @@ namespace SNSCakeBakery_Service.Services
         }
     }
 }
+

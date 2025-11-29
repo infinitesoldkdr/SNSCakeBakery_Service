@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SNSCakeBakery_Service.Data;
-using SNSCakeBakery_Service.Helpers;
-using SNSCakeBakery_Service.Middleware;
+using SNSCakeBakery_Service.Services.Address;
 using SNSCakeBakery_Service.Services.Implementations;
 using SNSCakeBakery_Service.Services.Interfaces;
 using System.Text;
@@ -21,6 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // DI Registrations
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddAuthentication("Bearer")

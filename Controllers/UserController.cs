@@ -1,112 +1,65 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SNSCakeBakery.Web.Models; // your EF models namespace
-using SNSCakeBakery.Web.ViewModels; // if you use view models
-using SNSCakeBakery_Service.Data;
-using System;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Web;
+using SNSCakeBakery_Service.DTOs.Auth;
+using SNSCakeBakery_Service.Services.Interfaces;  // IUserService
+using System.Threading.Tasks;
 
-
-namespace SNSCakeBakery.Web.Controllers
+namespace SNSCakeBakery_Service.Controllers
 {
-    public class UserController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : ControllerBase
     {
-        private readonly AppDbContext _db = new AppDbContext();
+        private readonly IUserService _userService;
 
-        // GET: /user/me
-        [HttpGet]
-        public ActionResult Me()
+        public UserController(IUserService userService)
         {
-            if (!User.Identity.IsAuthenticated)
-                return Json(new { authenticated = false }, JsonRequestBehavior.AllowGet);
-
-            var email = User.Identity.Name;
-            var user = _db.Users.FirstOrDefault(u => u.Email == email);
-
-            return Json(new 
-            {
-                authenticated = true,
-                email = user.Email,
-                id = user.Id
-            }, JsonRequestBehavior.AllowGet);
+            _userService = userService;
         }
 
-        // POST: /user/register
-        [HttpPost]
-        public ActionResult Register(string email, string password)
+        // -------------------------------------------------------
+        // POST: api/user/register
+        // -------------------------------------------------------
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-            {
-                return Json(new { success = false, message = "Email and password required." });
-            }
+            var result = await _userService.RegisterAsync(request);
 
-            var exists = _db.Users.Any(u => u.Email == email);
-            if (exists)
-            {
-                return Json(new { success = false, message = "Email already registered." });
-            }
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
 
-            var user = new User
-            {
-                Email = email,
-                PasswordHash = HashPassword(password),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _db.Users.Add(user);
-            _db.SaveChanges();
-
-            return Json(new { success = true });
+            return Ok(result);
         }
 
-        // POST: /user/login
-        [HttpPost]
-        public ActionResult Login(string email, string password)
+        // -------------------------------------------------------
+        // POST: api/user/login
+        // -------------------------------------------------------
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var user = _db.Users.FirstOrDefault(u => u.Email == email);
+            var result = await _userService.LoginAsync(request);
+
+            if (!result.Success)
+                return Unauthorized(new { message = result.Message });
+
+            return Ok(result);
+        }
+
+        // -------------------------------------------------------
+        // GET: api/user/me
+        // -------------------------------------------------------
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var userId = User.FindFirst("sub")?.Value;
+
+            var user = await _userService.GetUserProfileAsync(userId);
+
             if (user == null)
-            {
-                return Json(new { success = false, message = "Invalid credentials." });
-            }
+                return Unauthorized();
 
-            if (!VerifyPassword(user.PasswordHash, password))
-            {
-                return Json(new { success = false, message = "Invalid credentials." });
-            }
-
-            FormsAuthentication.SetAuthCookie(user.Email, true);
-
-            return Json(new { success = true });
-        }
-
-        // POST: /user/logout
-        [HttpPost]
-        public ActionResult Logout()
-        {
-            FormsAuthentication.SignOut();
-            return Json(new { success = true });
-        }
-
-        // --------------------------
-        // Password Functions
-        // --------------------------
-
-        private string HashPassword(string password)
-        {
-            using (var sha = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(password);
-                var hash = sha.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
-        }
-
-        private bool VerifyPassword(string storedHash, string password)
-        {
-            return storedHash == HashPassword(password);
+            return Ok(user);
         }
     }
 }

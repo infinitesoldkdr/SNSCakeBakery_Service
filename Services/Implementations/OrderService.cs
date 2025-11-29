@@ -3,7 +3,7 @@ using SNSCakeBakery_Service.Data;
 using SNSCakeBakery_Service.Models;
 using SNSCakeBakery_Service.Services.Interfaces;
 
-namespace SNSCakeBakery_Service.Services
+namespace SNSCakeBakery_Service.Services.Implementations
 {
     public class OrderService : IOrderService
     {
@@ -60,10 +60,10 @@ namespace SNSCakeBakery_Service.Services
                 return null;
 
             existing.CakeType = updatedOrder.CakeType;
-            existing.CakeSize = updatedOrder.CakeSize;
-            existing.Description = updatedOrder.Description;
-            existing.Price = updatedOrder.Price;
-            existing.NeedsDelivery = updatedOrder.NeedsDelivery;
+            existing.Size = updatedOrder.Size;
+            existing.Notes = updatedOrder.Notes;
+            //existing.Price = updatedOrder.Price;
+            existing.DeliveryRequired = updatedOrder.DeliveryRequired;
             existing.DeliveryDate = updatedOrder.DeliveryDate;
 
             await _db.SaveChangesAsync();

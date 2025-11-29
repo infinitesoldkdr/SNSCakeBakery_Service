@@ -25,7 +25,7 @@ namespace SNSCakeBakery_Service.Services.Address
             return await _context.Addresses.FindAsync(id);
         }
 
-        public async Task<Models.Address> CreateAddressAsync(AddressDto dto)
+        public async Task<Models.Address> CreateAddressAsync(CreateAddressDto dto)
         {
             var address = new Models.Address
             {
@@ -34,7 +34,7 @@ namespace SNSCakeBakery_Service.Services.Address
                 City = dto.City,
                 State = dto.State,
                 PostalCode = dto.PostalCode,
-                Country = dto.Country
+                //Country = dto.Country
             };
 
             _context.Add(address);
@@ -51,7 +51,6 @@ namespace SNSCakeBakery_Service.Services.Address
             address.City = dto.City;
             address.State = dto.State;
             address.PostalCode = dto.PostalCode;
-            address.Country = dto.Country;
 
             await _context.SaveChangesAsync();
             return address;

@@ -7,7 +7,7 @@ namespace SNSCakeBakery_Service.Services.Address
     {
         Task<List<Models.Address>> GetAddressesAsync(string userId);
         Task<Models.Address> GetAddressByIdAsync(string id);
-        Task<Models.Address> CreateAddressAsync(AddressDto dto);
+        Task<Models.Address> CreateAddressAsync(CreateAddressDto dto);
         Task<Models.Address> UpdateAddressAsync(string id, UpdateAddressDto dto);
         Task<bool> DeleteAddressAsync(string id);
     }
