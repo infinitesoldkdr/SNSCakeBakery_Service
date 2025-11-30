@@ -11,7 +11,7 @@ using SNSCakeBakery_Service.Data;
 
 namespace SNSCakeBakery_Service.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20251111071205_InitialCreate")]
     partial class InitialCreate
     {

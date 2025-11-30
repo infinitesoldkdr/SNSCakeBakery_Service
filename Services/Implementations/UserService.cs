@@ -2,6 +2,11 @@ using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SNSCakeBakery_Service.Data;
+using SNSCakeBakery_Service.DTO.Login;
+using SNSCakeBakery_Service.DTO.Register;
+using SNSCakeBakery_Service.DTO.Service;
+using SNSCakeBakery_Service.DTO.User;
+using SNSCakeBakery_Service.DTOs.Auth;
 using SNSCakeBakery_Service.Models;
 using SNSCakeBakery_Service.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,64 +26,88 @@ namespace SNSCakeBakery_Service.Services.Implementations
             _config = config;
         }
 
-        // ---------------------------
+        // -------------------------------------------------------
         // Register
-        // ---------------------------
-        public async Task<User?> RegisterAsync(string password, string email)
+        // -------------------------------------------------------
+        public async Task<ServiceResponse> RegisterAsync(RegisterRequestDto request)
         {
-            if (await _db.Users.AnyAsync(u => u.Email == email))
-                return null;
+            var exists = await _db.Users.AnyAsync(u => u.Email == request.Email);
 
-            var hashed = BCrypt.Net.BCrypt.HashPassword(password);
-
-            var newUser = new User
+            if (exists)
             {
-                //Username = username,
-                PasswordHash = hashed,
-                Email = email
+                return new ServiceResponse
+                {
+                    Success = false,
+                    Message = "Email already registered."
+                };
+            }
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = request.Email,
+                PasswordHash = hashedPassword
             };
 
-            _db.Users.Add(newUser);
+            _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            return newUser;
+            return new ServiceResponse
+            {
+                Success = true,
+                Message = "User registered successfully."
+            };
         }
 
-        // ---------------------------
-        // Login (returns JWT token)
-        // ---------------------------
-        public async Task<string?> LoginAsync(string email, string password)
+        // -------------------------------------------------------
+        // Login
+        // -------------------------------------------------------
+        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    Message = "Invalid credentials."
+                };
+            }
+
+            var token = GenerateJwt(user);
+
+            return new LoginResponseDto
+            {
+                Success = true,
+                Token = token,
+                Email = user.Email,
+                UserId = user.Id
+            };
+        }
+
+        // -------------------------------------------------------
+        // Get Authenticated User Profile
+        // -------------------------------------------------------
+        public async Task<UserProfileDto?> GetUserProfileAsync(string userId)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
                 return null;
 
-            if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-                return null;
-
-            return GenerateJwt(user);
+            return new UserProfileDto
+            {
+                UserId = user.Id,
+                Email = user.Email
+            };
         }
 
-        // ---------------------------
-        // Get User By ID
-        // ---------------------------
-        public async Task<User?> GetUserByIdAsync(string id)
-        {
-            return await _db.Users.FindAsync(id);
-        }
-
-        // ---------------------------
-        // Get User By Email
-        // ---------------------------
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        }
-
-        // ---------------------------
+        // -------------------------------------------------------
         // JWT Generator
-        // ---------------------------
+        // -------------------------------------------------------
         private string GenerateJwt(User user)
         {
             var key = new SymmetricSecurityKey(
@@ -89,8 +118,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };
 
             var token = new JwtSecurityToken(
@@ -103,6 +132,6 @@ namespace SNSCakeBakery_Service.Services.Implementations
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 }
-

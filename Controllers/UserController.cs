@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SNSCakeBakery_Service.DTO.Login;
+using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTOs.Auth;
 using SNSCakeBakery_Service.Services.Interfaces;  // IUserService
 using System.Threading.Tasks;

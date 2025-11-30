@@ -27,7 +27,7 @@ namespace SNSCakeBakery_Service.Controllers
             int userId = int.Parse(User.FindFirst("userId")!.Value);
 
             var orders = await _context.Orders
-                .Where(o => o.UserId == userId)
+                .Where(o => o.UserId == userId.ToString())
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
@@ -44,7 +44,7 @@ namespace SNSCakeBakery_Service.Controllers
 
             var order = new Order
             {
-                UserId = userId,
+                UserId = userId.ToString(),
                 CakeType = dto.CakeType,
                 Size = dto.Size,
                 Quantity = dto.Quantity,
@@ -67,7 +67,7 @@ namespace SNSCakeBakery_Service.Controllers
             int userId = int.Parse(User.FindFirst("userId")!.Value);
 
             var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+                .FirstOrDefaultAsync(o => o.Id == id.ToString() && o.UserId == userId.ToString());
 
             if (order == null) return NotFound();
 
@@ -83,7 +83,7 @@ namespace SNSCakeBakery_Service.Controllers
             int userId = int.Parse(User.FindFirst("userId")!.Value);
 
             var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+                .FirstOrDefaultAsync(o => o.Id == id.ToString() && o.UserId == userId.ToString());
 
             if (order == null) return NotFound();
 
@@ -106,7 +106,7 @@ namespace SNSCakeBakery_Service.Controllers
             int userId = int.Parse(User.FindFirst("userId")!.Value);
 
             var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);
+                .FirstOrDefaultAsync(o => o.Id == id.ToString() && o.UserId == userId.ToString());
 
             if (order == null) return NotFound();
 

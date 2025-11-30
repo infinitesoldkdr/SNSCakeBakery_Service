@@ -1,12 +1,16 @@
-using SNSCakeBakery_Service.Models;
+using SNSCakeBakery_Service.DTO.Login;
+using SNSCakeBakery_Service.DTO.Register;
+using SNSCakeBakery_Service.DTO.Service;
+using SNSCakeBakery_Service.DTO.User;
+using SNSCakeBakery_Service.DTOs.Auth;
 
 namespace SNSCakeBakery_Service.Services.Interfaces
 {
     public interface IUserService
     {
-        Task<User?> RegisterAsync( string password, string email);
-        Task<string?> LoginAsync(string email, string password);
-        Task<User?> GetUserByIdAsync(string id);
-        Task<User?> GetUserByEmailAsync(string email);
+        Task<ServiceResponse> RegisterAsync(RegisterRequestDto request);
+        Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
+        Task<UserProfileDto?> GetUserProfileAsync(string userId);
+
     }
 }

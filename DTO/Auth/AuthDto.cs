@@ -1,27 +1,19 @@
 namespace SNSCakeBakery_Service.DTOs.Auth
 {
-    // ---------------------------------------------
-    // User Registration Request
-    // ---------------------------------------------
-    public class RegisterRequestDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string FullName { get; set; }
-    }
-
-    // ---------------------------------------------
-    // User Login Request
-    // ---------------------------------------------
-    public class LoginRequestDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
 
     // ---------------------------------------------
     // Auth Response returned after login/registration
     // ---------------------------------------------
+    namespace SNSCakeBakery_Service.DTOs.Auth
+    {
+        public class AuthDto
+        {
+            public string Email { get; set; } = "";
+            public string FullName { get; set; } = "";
+            public string Token { get; set; } = "";
+        }
+    }
+
     public class AuthResponseDto
     {
         public string UserId { get; set; }
@@ -32,13 +24,21 @@ namespace SNSCakeBakery_Service.DTOs.Auth
         public string FullName { get; set; }
     }
 
-    // ---------------------------------------------
-    // DTO used when returning user info
-    // ---------------------------------------------
-    public class UserProfileDto
+    public class RegisterDto
     {
-        public string UserId { get; set; }
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    public class LoginDto
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    public class MeDto
+    {
         public string Email { get; set; }
-        public string FullName { get; set; }
+        public string UserID {  get; set; }
     }
 }

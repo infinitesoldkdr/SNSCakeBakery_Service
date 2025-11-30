@@ -1,59 +1,64 @@
 using Microsoft.EntityFrameworkCore;
 using SNSCakeBakery_Service.Data;
+using SNSCakeBakery_Service.DTO.Login;
+using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTOs.Auth;
-using SNSCakeBakery_Service.Helpers;
+using SNSCakeBakery_Service.DTOs.Auth.SNSCakeBakery_Service.DTOs.Auth;
 using SNSCakeBakery_Service.Models;
+using SNSCakeBakery_Service.Services.Helpers;
 using SNSCakeBakery_Service.Services.Interfaces;
 
-namespace SNSCakeBakery_Service.Services.Implementations;
-
-public class AuthService : IAuthService
+namespace SNSCakeBakery_Service.Services.Implementations
 {
-    private readonly AppDbContext _db;
-    private readonly JwtTokenGenerator _jwt;
-
-    public AuthService(AppDbContext db, JwtTokenGenerator jwt)
+    public class AuthService : IAuthService
     {
-        _db = db;
-        _jwt = jwt;
-    }
+        private readonly AppDbContext _db;
+        private readonly JwtTokenGenerator _jwt;
 
-    public async Task<AuthDto?> Register(RegisterRequest request)
-    {
-        if (await _db.Users.AnyAsync(x => x.Email == request.Email))
-            return null;
-
-        var user = new User
+        public AuthService(AppDbContext db, JwtTokenGenerator jwt)
         {
-            Email = request.Email,
-            FullName = request.FullName,
-            PasswordHash = PasswordHasher.Hash(request.Password)
-        };
+            _db = db;
+            _jwt = jwt;
+        }
 
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-
-        return new AuthDto
+        public AuthDto? Register(RegisterRequestDto request)
         {
-            Email = user.Email,
-            FullName = user.FullName,
-            Token = _jwt.GenerateToken(user)
-        };
-    }
+            if (_db.Users.Any(x => x.Email == request.Email))
+                return null;
 
-    public async Task<AuthDto?> Login(LoginRequest request)
-    {
-        var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == request.Email);
-        if (user == null) return null;
+            var user = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = request.Email,
+                //FullName = request.FullName,
+                PasswordHash = PasswordHasher.Hash(request.Password)
+            };
 
-        if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
-            return null;
+            _db.Users.Add(user);
+            _db.SaveChanges();
 
-        return new AuthDto
+            return new AuthDto
+            {
+                Email = user.Email,
+                FullName = user.FullName,
+                Token = _jwt.GenerateToken(user)
+            };
+        }
+
+        public AuthDto? Login(LoginRequestDto request)
         {
-            Email = user.Email,
-            FullName = user.FullName,
-            Token = _jwt.GenerateToken(user)
-        };
+            var user = _db.Users.SingleOrDefault(x => x.Email == request.Email);
+            if (user == null) return null;
+
+            if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
+                return null;
+
+            return new AuthDto
+            {
+                Email = user.Email,
+                FullName = user.FullName,
+                Token = _jwt.GenerateToken(user)
+            };
+        }
     }
 }

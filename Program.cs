@@ -2,8 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SNSCakeBakery_Service.Data;
 using SNSCakeBakery_Service.Services.Address;
+using SNSCakeBakery_Service.Services.Helpers;
 using SNSCakeBakery_Service.Services.Implementations;
 using SNSCakeBakery_Service.Services.Interfaces;
+using SNSCakeBakery_Service.Services.Middleware;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
