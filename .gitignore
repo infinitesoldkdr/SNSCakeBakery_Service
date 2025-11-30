@@ -65,3 +65,14 @@ desktop.ini
 /publish/
 /out/
 wwwroot/dist/
+/bin/Debug/net9.0/
+/obj/project.assets.json
+/obj/project.nuget.cache
+/obj/SNSCakeBakery_Service.csproj.nuget.dgspec.json
+/obj/SNSCakeBakery_Service.csproj.nuget.g.props
+/obj/SNSCakeBakery_Service.csproj.nuget.g.targets
+/bin/Debug/net9.0/SNSCakeBakery_Service.deps.json
+/bin/Debug/net9.0/SNSCakeBakery_Service.dll
+/bin/Debug/net9.0/SNSCakeBakery_Service.pdb
+/obj/Debug/net9.0/ref/SNSCakeBakery_Service.dll
+/obj/Debug/net9.0/refint/SNSCakeBakery_Service.dll
