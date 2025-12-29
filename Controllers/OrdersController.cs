@@ -125,7 +125,7 @@ namespace SNSCakeBakery_Service.Controllers
         public string CakeType { get; set; } = "";
         public string Size { get; set; } = "";
         public int Quantity { get; set; }
-        public string? Notes { get; set; }
+        public string Notes { get; set; } = "";
 
         public DateTime OrderDate { get; set; } = DateTime.Now;
     }

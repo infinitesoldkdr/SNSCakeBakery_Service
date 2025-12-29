@@ -4,6 +4,7 @@ using SNSCakeBakery_Service.DTO.Login;
 using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTOs.Auth;
 using SNSCakeBakery_Service.Services.Interfaces;  // IUserService
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SNSCakeBakery_Service.Controllers
@@ -47,21 +48,32 @@ namespace SNSCakeBakery_Service.Controllers
             return Ok(result);
         }
 
-        // -------------------------------------------------------
-        // GET: api/user/me
-        // -------------------------------------------------------
+
+        // ----------------------------------------------------
+        // GET: /api/user/me
+        // ----------------------------------------------------
+        [HttpGet("GetMyProfile")]
         [Authorize]
-        [HttpGet("me")]
         public async Task<IActionResult> Me()
         {
-            var userId = User.FindFirst("sub")?.Value;
+           var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                 ?? User.FindFirstValue("sub");
+
+            if (userId == null)
+                return Unauthorized(new { authenticated = false });
 
             var user = await _userService.GetUserProfileAsync(userId);
 
             if (user == null)
-                return Unauthorized();
+                return Unauthorized(new { authenticated = false });
 
-            return Ok(user);
+            return Ok(new
+            {
+                authenticated = true,
+                id = user.UserId,
+                email = user.Email
+            });
         }
+
     }
 }

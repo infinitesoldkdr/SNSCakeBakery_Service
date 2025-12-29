@@ -21,53 +21,6 @@ namespace SNSCakeBakery_Service.Controllers
         }
 
         // ----------------------------------------------------
-        // GET: /api/user/me
-        // ----------------------------------------------------
-        // [HttpGet("me")]
-        // [Authorize]
-        // public async Task<IActionResult> Me()
-        // {
-        //     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        //     if (userId == null)
-        //         return Unauthorized(new { authenticated = false });
-
-        //     var user = await _userService.GetUserProfileAsync(userId);
-
-        //     if (user == null)
-        //         return Unauthorized(new { authenticated = false });
-
-        //     return Ok(new
-        //     {
-        //         authenticated = true,
-        //         id = user.UserId,
-        //         email = user.Email
-        //     });
-        // }
-
-        // ----------------------------------------------------
-        // POST: /api/user/register
-        // ----------------------------------------------------
-        // [HttpPost("register")]
-        // public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        // {
-        //     if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-        //         return BadRequest(new { success = false, message = "Email and password required." });
-
-        //     //var user = await _userService.RegisterAsync(dto.Password, dto.Email);
-        //     var user = _userService.RegisterAsync(new RegisterRequestDto
-        //     {
-        //         Email = dto.Email,
-        //         Password = dto.Password
-        //     });
-
-        //     if (user == null)
-        //         return BadRequest(new { success = false, message = "Email already registered." });
-
-        //     return Ok(new { success = true, userId = user.Id });
-        // }
-
-        // ----------------------------------------------------
         // POST: /api/user/login
         // ----------------------------------------------------
         [HttpPost("authlogin")]

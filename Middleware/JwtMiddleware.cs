@@ -18,11 +18,15 @@ namespace SNSCakeBakery_Service.Services.Middleware
 
         public async Task Invoke(HttpContext context, IUserService userService)
         {
-            var token = context.Request.Headers["Authorization"]
-                .FirstOrDefault()?.Split(" ").Last();
+            // Get the raw header
+            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
-            if (token != null)
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+            {
+                // Extract ONLY the token part (skip "Bearer " which is 7 characters)
+                var token = authHeader.Substring(7).Trim(); 
                 await AttachUserToContext(context, userService, token);
+            }
 
             await _next(context);
         }
@@ -52,10 +56,9 @@ namespace SNSCakeBakery_Service.Services.Middleware
                 // Attach user to HttpContext
                 context.Items["User"] = await userService.GetUserProfileAsync(userId);
             }
-            catch
+            catch(Exception ex)
             {
-                // If JWT validation fails, do nothing.
-                // User will NOT be attached to HttpContext.
+                Console.Write(ex.ToString());
             }
         }
     }
