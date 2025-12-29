@@ -17,17 +17,41 @@ namespace SNSCakeBakery_Service.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // User Email unique constraint
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
+            // ==========================================================
+            // FIX: Configure User entity for string Primary Key
+            // ==========================================================
+            modelBuilder.Entity<User>(entity =>
+            {
+                // 1. Configure PK: Set max length for MySQL VARCHAR, prevent auto-increment.
+                entity.Property(u => u.Id)
+                      .HasMaxLength(36) 
+                      .ValueGeneratedNever(); 
 
-            // Order → User relationship
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.User)
-                .WithMany(u => u.Orders)
-                .HasForeignKey(o => o.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                // User Email unique constraint
+                entity.HasIndex(u => u.Email)
+                      .IsUnique();
+            });
+
+            // ==========================================================
+            // FIX: Configure Order entity for string Primary Key & FK
+            // ==========================================================
+            modelBuilder.Entity<Order>(entity =>
+            {
+                // 1. Configure PK: Set max length for MySQL VARCHAR, prevent auto-increment.
+                entity.Property(o => o.Id)
+                      .HasMaxLength(36)
+                      .ValueGeneratedNever(); 
+
+                // 2. Configure Foreign Key (FK) to ensure it matches the User.Id length
+                entity.Property(o => o.UserId)
+                      .HasMaxLength(36);
+
+                // Order → User relationship
+                entity.HasOne(o => o.User)
+                      .WithMany(u => u.Orders)
+                      .HasForeignKey(o => o.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

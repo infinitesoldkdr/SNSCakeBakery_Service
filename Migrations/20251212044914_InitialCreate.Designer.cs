@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SNSCakeBakery_Service.Data;
 
@@ -11,9 +12,11 @@ using SNSCakeBakery_Service.Data;
 namespace SNSCakeBakery_Service.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251212044914_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,43 @@ namespace SNSCakeBakery_Service.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("SNSCakeBakery_Service.Models.Address", b =>
+                {
+                    b.Property<int>("AddressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("AddressId"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("AddressId");
+
+                    b.ToTable("Addresses");
+                });
 
             modelBuilder.Entity("SNSCakeBakery_Service.Models.GoogleSyncLog", b =>
                 {
@@ -47,11 +87,9 @@ namespace SNSCakeBakery_Service.Migrations
 
             modelBuilder.Entity("SNSCakeBakery_Service.Models.Order", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("CakeType")
                         .IsRequired()
@@ -60,9 +98,21 @@ namespace SNSCakeBakery_Service.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("DeliveryAddressID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DeliveryDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("DeliveryRequired")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -75,8 +125,10 @@ namespace SNSCakeBakery_Service.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)");
 
                     b.HasKey("Id");
 
@@ -87,20 +139,22 @@ namespace SNSCakeBakery_Service.Migrations
 
             modelBuilder.Entity("SNSCakeBakery_Service.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -109,6 +163,9 @@ namespace SNSCakeBakery_Service.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });

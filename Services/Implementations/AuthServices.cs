@@ -30,7 +30,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
             {
                 Id = Guid.NewGuid().ToString(),
                 Email = request.Email,
-                //FullName = request.FullName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
                 PasswordHash = PasswordHasher.Hash(request.Password)
             };
 
@@ -40,7 +41,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
             return new AuthDto
             {
                 Email = user.Email,
-                FullName = user.FullName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Token = _jwt.GenerateToken(user)
             };
         }
@@ -56,7 +58,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
             return new AuthDto
             {
                 Email = user.Email,
-                FullName = user.FullName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 Token = _jwt.GenerateToken(user)
             };
         }

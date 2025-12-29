@@ -7,6 +7,7 @@ using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTO.Service;
 using SNSCakeBakery_Service.DTO.User;
 using SNSCakeBakery_Service.DTOs.Auth;
+using SNSCakeBakery_Service.Helpers;
 using SNSCakeBakery_Service.Models;
 using SNSCakeBakery_Service.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
@@ -46,8 +47,10 @@ namespace SNSCakeBakery_Service.Services.Implementations
 
             var user = new User
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = UidGenerator.GenerateUniqueId("U").ToString(),
                 Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
                 PasswordHash = hashedPassword
             };
 

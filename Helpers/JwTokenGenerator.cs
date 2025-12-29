@@ -28,7 +28,8 @@ namespace SNSCakeBakery_Service.Services.Helpers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim("fullname", user.FullName ?? "")
+                new Claim("firstname", user.FirstName ?? ""),
+                new Claim("lastname", user.LastName ?? "")
             };
 
             var token = new JwtSecurityToken(
