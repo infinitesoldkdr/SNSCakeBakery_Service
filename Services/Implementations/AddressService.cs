@@ -31,10 +31,11 @@ namespace SNSCakeBakery_Service.Services.Address
             {
                 UserId = dto.UserId,
                 Street = dto.Street,
+                Unit = dto.Unit,
                 City = dto.City,
                 State = dto.State,
                 PostalCode = dto.PostalCode,
-                //Country = dto.Country
+                Country = dto.Country
             };
 
             _context.Add(address);
@@ -48,9 +49,11 @@ namespace SNSCakeBakery_Service.Services.Address
             if (address == null) return null;
 
             address.Street = dto.Street;
+            address.Unit = dto.Unit;
             address.City = dto.City;
             address.State = dto.State;
             address.PostalCode = dto.PostalCode;
+            address.Country = dto.Country;
 
             await _context.SaveChangesAsync();
             return address;
