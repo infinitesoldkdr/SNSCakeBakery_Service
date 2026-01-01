@@ -9,8 +9,18 @@ using SNSCakeBakery_Service.Services.Interfaces;
 using SNSCakeBakery_Service.Services.Middleware;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Oracle.ManagedDataAccess.Client;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var walletPath = @"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
+
+// This sets the global configuration for the Oracle driver
+OracleConfiguration.TnsAdmin = walletPath;
+OracleConfiguration.WalletLocation = walletPath;
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 1. FIX: Prevent .NET from renaming "sub" to long XML schemas
 // This ensures User.FindFirstValue(ClaimTypes.NameIdentifier) or "sub" works correctly.
@@ -19,12 +29,12 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 // Add services
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-    )
-);
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseMySql(
+//         builder.Configuration.GetConnectionString("DefaultConnection"),
+//         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
+//     )
+// );
 
 // DI Registrations
 builder.Services.AddScoped<IAuthService, AuthService>();
