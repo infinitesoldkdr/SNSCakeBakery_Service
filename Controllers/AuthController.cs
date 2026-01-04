@@ -23,7 +23,7 @@ namespace SNSCakeBakery_Service.Controllers
         // ----------------------------------------------------
         // POST: /api/user/login
         // ----------------------------------------------------
-        [HttpPost("authlogin")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var token = _userService.LoginAsync(new LoginRequestDto

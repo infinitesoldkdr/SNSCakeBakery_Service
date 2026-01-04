@@ -15,26 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 var walletPath = @"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
 
-// This sets the global configuration for the Oracle driver
 OracleConfiguration.TnsAdmin = walletPath;
 OracleConfiguration.WalletLocation = walletPath;
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 1. FIX: Prevent .NET from renaming "sub" to long XML schemas
-// This ensures User.FindFirstValue(ClaimTypes.NameIdentifier) or "sub" works correctly.
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 // Add services
 builder.Services.AddControllers();
-
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseMySql(
-//         builder.Configuration.GetConnectionString("DefaultConnection"),
-//         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
-//     )
-// );
 
 // DI Registrations
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -42,7 +32,6 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-// 2. UPDATED AUTHENTICATION: Use values from appsettings.json
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -63,18 +52,17 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero 
     };
 
-    // --- ADD THIS SECTION TO SEE ERRORS IN CONSOLE ---
     options.Events = new JwtBearerEvents
     {
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine("\n--- AUTHENTICATION FAILED ---");
-            Console.WriteLine($"Error: {context.Exception.Message}");
+            // Console.WriteLine("\n--- AUTHENTICATION FAILED ---");
+            // Console.WriteLine($"Error: {context.Exception.Message}");
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
         {
-            Console.WriteLine("\n--- TOKEN VALIDATED SUCCESSFULLY ---");
+            // Console.WriteLine("\n--- TOKEN VALIDATED SUCCESSFULLY ---");
             return Task.CompletedTask;
         }
     };
@@ -83,7 +71,51 @@ builder.Services.AddSingleton<JwtTokenGenerator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+
+
+const string DevPolicy = "DevPolicy";
+const string ProdPolicy = "ProdPolicy";
+
+
+builder.Services.AddCors(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddPolicy(DevPolicy, policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    }
+    else
+    {
+        var origins = builder.Configuration
+            .GetSection("CorsSettings:AllowedOrigins")
+            .Get<string[]>();
+
+        options.AddPolicy(ProdPolicy, policy =>
+        {
+            policy.WithOrigins(origins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); 
+        });
+    }
+});
+
 var app = builder.Build();
+
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(DevPolicy);
+}
+else
+{
+    app.UseCors(ProdPolicy);
+}
 
 // Swagger
 if (app.Environment.IsDevelopment())
@@ -92,11 +124,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// 3. CORRECT MIDDLEWARE ORDER
-// Authentication MUST come before Authorization and your custom Middleware
 app.UseAuthentication(); 
 
-// Use custom middleware AFTER authentication so the User is already identified
 app.UseMiddleware<JwtMiddleware>(); 
 
 app.UseAuthorization(); 
