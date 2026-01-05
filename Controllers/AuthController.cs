@@ -32,7 +32,7 @@ namespace SNSCakeBakery_Service.Controllers
                 Password = dto.Password
             });
 
-            if (token == null)
+            if (token.Result.Token == null)
                 return Unauthorized(new { success = false, message = "Invalid credentials." });
 
             return Ok(new
