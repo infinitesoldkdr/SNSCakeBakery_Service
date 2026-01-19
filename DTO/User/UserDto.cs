@@ -15,10 +15,10 @@ namespace SNSCakeBakery_Service.DTOs.Users
         public string Password { get; set; }
     }
 
-// ---------------------------------------------
-// Update User DTO
-// ---------------------------------------------
-public class UpdateUserDto
+    // ---------------------------------------------
+    // Update User DTO
+    // ---------------------------------------------
+    public class UpdateUserDto
     {
         public string Id { get; set; }
         public string Email { get; set; }
@@ -40,6 +40,13 @@ public class UpdateUserDto
 
         // Orders associated with the user
         public ICollection<OrderResponseDto> Orders { get; set; }
+    }
+
+    public class UserSyncDto
+    {
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
     }
 
 }

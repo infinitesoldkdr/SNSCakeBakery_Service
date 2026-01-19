@@ -15,6 +15,7 @@ using System.Security.Claims;
 using System.Text;
 using SNSCakeBakery_Service.Services.Helpers;
 using Microsoft.JSInterop.Infrastructure;
+using SNSCakeBakery_Service.DTOs.Users;
 
 namespace SNSCakeBakery_Service.Services.Implementations
 {
@@ -113,5 +114,45 @@ namespace SNSCakeBakery_Service.Services.Implementations
             };
         }
 
+        // Add this to your UserService.cs
+        public async Task<ServiceResponse> SyncFirebaseUserAsync(string firebaseUid, UserSyncDto dto)
+        {
+            // 1. Check if the user already exists in Oracle by FirebaseUid
+            // Note: You must add the 'FirebaseUid' property to your User model first!
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.FirebaseUid == firebaseUid);
+
+            if (user == null)
+            {
+                // 2. New User: Create record in Oracle
+                user = new User
+                {
+                    // Keep your existing custom ID generation
+                    Id = UidGenerator.GenerateUniqueId("U").ToString(),
+                    FirebaseUid = firebaseUid,
+                    Email = dto.Email,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    PasswordHash = "EXTERNAL_FIREBASE_AUTH"
+                };
+                _db.Users.Add(user);
+            }
+            else
+            {
+                // 3. Existing User: Update profile if names changed
+                user.FirstName = dto.FirstName;
+                user.LastName = dto.LastName;
+                _db.Users.Update(user);
+            }
+
+            try
+            {
+                await _db.SaveChangesAsync();
+                return new ServiceResponse { Success = true, Message = "Profile synced." };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse { Success = false, Message = $"Database Sync Failed: {ex.Message}" };
+            }
+        }
     }
 }

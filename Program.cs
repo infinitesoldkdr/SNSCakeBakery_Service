@@ -12,7 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Oracle.ManagedDataAccess.Client;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var firebaseProjectId = "snscbauth-3217d";
 var walletPath = @"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
 
 OracleConfiguration.TnsAdmin = walletPath;
@@ -32,25 +32,19 @@ builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
-        ClockSkew = TimeSpan.Zero 
-    };
+        options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+            ValidateAudience = true,
+            ValidAudience = firebaseProjectId,
+            ValidateLifetime = true
+        };
 
     options.Events = new JwtBearerEvents
     {
@@ -67,6 +61,7 @@ builder.Services.AddAuthentication(options =>
         }
     };
 }); 
+
 builder.Services.AddSingleton<JwtTokenGenerator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

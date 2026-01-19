@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SNSCakeBakery_Service.DTO.Login;
 using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTOs.Auth;
+using SNSCakeBakery_Service.DTOs.Users;
 using SNSCakeBakery_Service.Services.Interfaces;  // IUserService
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -75,5 +76,23 @@ namespace SNSCakeBakery_Service.Controllers
             });
         }
 
+    [HttpPost("sync")]
+    [Authorize] // Critical: Ensures only valid Firebase users can sync
+    public async Task<IActionResult> SyncUser([FromBody] UserSyncDto request)
+    {
+        // Extract UID from the Firebase JWT claims
+        var firebaseUid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(firebaseUid))
+            return Unauthorized(new { message = "Firebase UID not found in token." });
+
+        // Pass to service to handle the EF Core logic (Check if exists, then Create/Update)
+        var result = await _userService.SyncFirebaseUserAsync(firebaseUid, request);
+
+        if (!result.Success)
+            return BadRequest(new { message = result.Message });
+
+        return Ok(result);
+    }
     }
 }
