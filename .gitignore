@@ -77,3 +77,23 @@ wwwroot/dist/
 /bin/Debug/net9.0/SNSCakeBakery_Service.pdb
 /obj/Debug/net9.0/ref/SNSCakeBakery_Service.dll
 /obj/Debug/net9.0/refint/SNSCakeBakery_Service.dll
+bin/Debug/net9.0/appsettings.Development.json
+bin/Debug/net9.0/appsettings.Development.json
+bin/Debug/net9.0/appsettings.Development.json
+bin/Debug/net9.0/appsettings.json
+bin/Debug/net9.0/appsettings.Development.json
+bin/Debug/net9.0/appsettings.json
+
+# Ignore the actual config file with real secrets
+SNSCakeBakery_Service/appsettings.json
+
+# Ignore JetBrains/Rider IDE files
+.idea/
+
+# Ignore build artifacts
+bin/
+obj/
+
+# Ignore local dev settings
+appsettings.Development.json
+bin/Debug/net9.0/appsettings.Development.json

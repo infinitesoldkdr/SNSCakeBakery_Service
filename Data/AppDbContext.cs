@@ -18,39 +18,64 @@ namespace SNSCakeBakery_Service.Data
             base.OnModelCreating(modelBuilder);
 
             // ==========================================================
-            // FIX: Configure User entity for string Primary Key
+            // User Configuration (Oracle Optimized)
             // ==========================================================
             modelBuilder.Entity<User>(entity =>
             {
-                // 1. Configure PK: Set max length for MySQL VARCHAR, prevent auto-increment.
+                entity.ToTable("Users"); // Ensure table name is exactly as expected
+
+                entity.HasKey(u => u.Id);
+                
                 entity.Property(u => u.Id)
-                      .HasMaxLength(36) 
+                      .HasMaxLength(36)
                       .ValueGeneratedNever(); 
 
-                // User Email unique constraint
-                entity.HasIndex(u => u.Email)
-                      .IsUnique();
+                entity.Property(u => u.Email)
+                      .IsRequired()
+                      .HasMaxLength(255);
+
+                entity.Property(u => u.FirebaseUid)
+                      .IsRequired()
+                      .HasMaxLength(128);
+
+                // Unique Constraints
+                entity.HasIndex(u => u.Email).IsUnique().HasDatabaseName("UX_User_Email");
+                entity.HasIndex(u => u.FirebaseUid).IsUnique().HasDatabaseName("UX_User_FirebaseUid");
             });
 
             // ==========================================================
-            // FIX: Configure Order entity for string Primary Key & FK
+            // Order Configuration
             // ==========================================================
             modelBuilder.Entity<Order>(entity =>
             {
-                // 1. Configure PK: Set max length for MySQL VARCHAR, prevent auto-increment.
+                entity.ToTable("Orders");
+
                 entity.Property(o => o.Id)
                       .HasMaxLength(36)
                       .ValueGeneratedNever(); 
 
-                // 2. Configure Foreign Key (FK) to ensure it matches the User.Id length
                 entity.Property(o => o.UserId)
+                      .IsRequired()
                       .HasMaxLength(36);
 
-                // Order → User relationship
+                // Relationship: Order -> User
                 entity.HasOne(o => o.User)
                       .WithMany(u => u.Orders)
                       .HasForeignKey(o => o.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.Cascade)
+                      .HasConstraintName("FK_Orders_Users");
+            });
+
+            // ==========================================================
+            // Address Configuration
+            // ==========================================================
+            modelBuilder.Entity<Address>(entity =>
+            {
+                entity.ToTable("Addresses");
+                
+                // Addresses usually use an Integer Identity in Oracle
+                entity.Property(a => a.AddressId)
+                      .ValueGeneratedOnAdd(); 
             });
         }
     }

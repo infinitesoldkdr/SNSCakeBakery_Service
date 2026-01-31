@@ -1,21 +1,15 @@
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using SNSCakeBakery_Service.Data;
 using SNSCakeBakery_Service.DTO.Login;
 using SNSCakeBakery_Service.DTO.Register;
 using SNSCakeBakery_Service.DTO.Service;
 using SNSCakeBakery_Service.DTO.User;
-using SNSCakeBakery_Service.DTOs.Auth;
 using SNSCakeBakery_Service.Helpers;
 using SNSCakeBakery_Service.Models;
 using SNSCakeBakery_Service.Services.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using SNSCakeBakery_Service.Services.Helpers;
-using Microsoft.JSInterop.Infrastructure;
 using SNSCakeBakery_Service.DTOs.Users;
+using FirebaseAdmin.Auth; // Requires FirebaseAdmin NuGet package
 
 namespace SNSCakeBakery_Service.Services.Implementations
 {
@@ -49,7 +43,7 @@ namespace SNSCakeBakery_Service.Services.Implementations
                 };
             }
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            //var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var user = new User
             {
@@ -57,7 +51,7 @@ namespace SNSCakeBakery_Service.Services.Implementations
                 Email = request.Email,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                PasswordHash = hashedPassword
+                //PasswordHash = hashedPassword
             };
 
             _db.Users.Add(user);
@@ -76,8 +70,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            //TODO: review this logic
+            if (user == null)
             {
                 return new LoginResponseDto
                 {
@@ -114,7 +108,55 @@ namespace SNSCakeBakery_Service.Services.Implementations
             };
         }
 
-        // Add this to your UserService.cs
+        public async Task<ServiceResponse> RegisterUser(CreateUserDto dto)
+{
+    // 1. Create the user in Firebase first
+    var fbArgs = new UserRecordArgs
+    {
+        Email = dto.Email,
+        Password = dto.Password,
+        DisplayName = $"{dto.FirstName} {dto.LastName}",
+        EmailVerified = false
+    };
+
+    UserRecord fbRecord;
+    try {
+        fbRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(fbArgs);
+    }
+    catch (Exception ex) {
+        return new ServiceResponse { Success = false, Message = $"Firebase Error: {ex.Message}" };
+    }
+
+    // 2. Now create the user in Oracle using the UID we just got
+    var newUser = new User
+    {
+        Id = UidGenerator.GenerateUniqueId("U").ToString(),
+        FirebaseUid = fbRecord.Uid, // This satisfies your DB requirement
+        Email = dto.Email,
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        CreatedDate = DateTime.UtcNow
+    };
+
+    try {
+        _db.Users.Add(newUser);
+        await _db.SaveChangesAsync();
+        return new ServiceResponse { Success = true, Message = "User registered successfully in both systems." };
+    }
+    catch (Exception ex) {
+        // Principal Tip: COMPENSATING TRANSACTION
+        // If Oracle fails, we must delete the Firebase user we just created 
+        // otherwise the systems get out of sync.
+        await FirebaseAuth.DefaultInstance.DeleteUserAsync(fbRecord.Uid);
+        return new ServiceResponse { Success = false, Message = "Database error. Registration rolled back." };
+    }
+}
+        /// <summary>
+        /// Allows User to sign in via Google
+        /// </summary>
+        /// <param name="firebaseUid"></param>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         public async Task<ServiceResponse> SyncFirebaseUserAsync(string firebaseUid, UserSyncDto dto)
         {
             // 1. Check if the user already exists in Oracle by FirebaseUid
@@ -132,7 +174,7 @@ namespace SNSCakeBakery_Service.Services.Implementations
                     Email = dto.Email,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
-                    PasswordHash = "EXTERNAL_FIREBASE_AUTH"
+                    //PasswordHash = "EXTERNAL_FIREBASE_AUTH"
                 };
                 _db.Users.Add(user);
             }
@@ -154,5 +196,6 @@ namespace SNSCakeBakery_Service.Services.Implementations
                 return new ServiceResponse { Success = false, Message = $"Database Sync Failed: {ex.Message}" };
             }
         }
+        
     }
 }

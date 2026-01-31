@@ -25,9 +25,9 @@ namespace SNSCakeBakery_Service.Controllers
         // POST: api/user/register
         // -------------------------------------------------------
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> Register([FromBody] CreateUserDto request)
         {
-            var result = await _userService.RegisterAsync(request);
+            var result = await _userService.RegisterUser(request);
 
             if (!result.Success)
                 return BadRequest(new { message = result.Message });

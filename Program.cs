@@ -7,13 +7,19 @@ using SNSCakeBakery_Service.Services.Helpers;
 using SNSCakeBakery_Service.Services.Implementations;
 using SNSCakeBakery_Service.Services.Interfaces;
 using SNSCakeBakery_Service.Services.Middleware;
-using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Oracle.ManagedDataAccess.Client;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
-var firebaseProjectId = "snscbauth-3217d";
-var walletPath = @"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(builder.Configuration["Firebase:APIKeyPath"])
+});
+var firebaseProjectId = builder.Configuration["Firebase:ProjectID"];
+var walletPath =  builder.Configuration["WalletPath"];
+//@"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
 
 OracleConfiguration.TnsAdmin = walletPath;
 OracleConfiguration.WalletLocation = walletPath;
@@ -31,7 +37,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

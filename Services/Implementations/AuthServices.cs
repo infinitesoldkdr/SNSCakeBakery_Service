@@ -32,7 +32,7 @@ namespace SNSCakeBakery_Service.Services.Implementations
                 Email = request.Email,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                PasswordHash = PasswordHasher.Hash(request.Password)
+                //PasswordHash = PasswordHasher.Hash(request.Password)
             };
 
             _db.Users.Add(user);
@@ -52,7 +52,8 @@ namespace SNSCakeBakery_Service.Services.Implementations
             var user = _db.Users.SingleOrDefault(x => x.Email == request.Email);
             if (user == null) return null;
 
-            if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
+            //TODO: revisit and adjust
+            if (!PasswordHasher.Verify(request.Password, string.Empty))
                 return null;
 
             return new AuthDto
