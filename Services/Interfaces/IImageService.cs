@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Http; 
+
 public interface IImageService
 {
-    //Returns the URL of the uploaded image
-    Task<string> UploadImageAsync(Stream fileStream, string fileName, string contentType);
-    Task DeleteImageAsync(string fileName);
+    Task<string> UploadImageAsync(IFormFile file, string folder);
+    Task DeleteImageAsync(string storageKey);
 }

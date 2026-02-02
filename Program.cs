@@ -1,25 +1,33 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SNSCakeBakery_Service.Data;
-using SNSCakeBakery_Service.Services.Address;
-using SNSCakeBakery_Service.Services.Helpers;
-using SNSCakeBakery_Service.Services.Implementations;
-using SNSCakeBakery_Service.Services.Interfaces;
-using SNSCakeBakery_Service.Services.Middleware;
-using System.IdentityModel.Tokens.Jwt;
 using Oracle.ManagedDataAccess.Client;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using System.IdentityModel.Tokens.Jwt;
+
+// Project Namespaces
+using SNSCakeBakery_Service.Data;
+using SNSCakeBakery_Service.Configuration;
+using SNSCakeBakery_Service.Services.Interfaces;
+using SNSCakeBakery_Service.Services.Implementations;
+using SNSCakeBakery_Service.Services.Address;
+using SNSCakeBakery_Service.Services.Helpers;
+using SNSCakeBakery_Service.Services.Middleware;
+using SNSCakeBakery_Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ==========================================
+// 1. INFRASTRUCTURE CONFIGURATION (Oracle & Firebase)
+// ==========================================
+var firebaseProjectId = builder.Configuration["Firebase:ProjectID"];
+var walletPath = builder.Configuration["WalletPath"];
+
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile(builder.Configuration["Firebase:APIKeyPath"])
 });
-var firebaseProjectId = builder.Configuration["Firebase:ProjectID"];
-var walletPath =  builder.Configuration["WalletPath"];
-//@"/Users/delantedawkins/Projects/Wallet_SNSCAKEBAKERY";
 
 OracleConfiguration.TnsAdmin = walletPath;
 OracleConfiguration.WalletLocation = walletPath;
@@ -27,16 +35,34 @@ OracleConfiguration.WalletLocation = walletPath;
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+// ==========================================
+// 2. OPTIONS & STRONGLY-TYPED SETTINGS
+// ==========================================
+builder.Services.Configure<CloudflareOptions>(
+    builder.Configuration.GetSection(CloudflareOptions.SectionName));
 
-// Add services
+// ==========================================
+// 3. CORE SERVICES (Dependency Injection)
+// ==========================================
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// DI Registrations
+// Application Services
+builder.Services.AddScoped<IImageService, CloudflareR2Service>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+
+// Helpers
+builder.Services.AddSingleton<JwtTokenGenerator>();
+
+// ==========================================
+// 4. IDENTITY & SECURITY (Authentication & CORS)
+// ==========================================
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -50,66 +76,36 @@ builder.Services
             ValidAudience = firebaseProjectId,
             ValidateLifetime = true
         };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            // Console.WriteLine("\n--- AUTHENTICATION FAILED ---");
-            // Console.WriteLine($"Error: {context.Exception.Message}");
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            // Console.WriteLine("\n--- TOKEN VALIDATED SUCCESSFULLY ---");
-            return Task.CompletedTask;
-        }
-    };
-}); 
-
-builder.Services.AddSingleton<JwtTokenGenerator>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-
+    });
 
 const string DevPolicy = "DevPolicy";
 const string ProdPolicy = "ProdPolicy";
-
 
 builder.Services.AddCors(options =>
 {
     if (builder.Environment.IsDevelopment())
     {
-        options.AddPolicy(DevPolicy, policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+        options.AddPolicy(DevPolicy, policy => 
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
     }
     else
     {
-        var origins = builder.Configuration
-            .GetSection("CorsSettings:AllowedOrigins")
-            .Get<string[]>();
-
-        options.AddPolicy(ProdPolicy, policy =>
-        {
-            policy.WithOrigins(origins)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials(); 
-        });
+        var origins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+        options.AddPolicy(ProdPolicy, policy => 
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
     }
 });
 
+// ==========================================
+// 5. REQUEST PIPELINE (Middleware)
+// ==========================================
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
     app.UseCors(DevPolicy);
 }
 else
@@ -117,18 +113,11 @@ else
     app.UseCors(ProdPolicy);
 }
 
-// Swagger
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+// Order matters here! Auth -> Middleware -> Authorization
 app.UseAuthentication(); 
-
 app.UseMiddleware<JwtMiddleware>(); 
-
 app.UseAuthorization(); 
 
 app.MapControllers();
+
 app.Run();
