@@ -97,3 +97,5 @@ obj/
 # Ignore local dev settings
 appsettings.Development.json
 bin/Debug/net9.0/appsettings.Development.json
+appsettings.Development.json
+bin/Debug/net9.0/appsettings.json

@@ -21,39 +21,52 @@ namespace SNSCakeBakery_Service.Data
         public DbSet<ProductImage> ProductImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    // 1. Apply existing configurations
+    ConfigureExistingEntities(modelBuilder);
+    ConfigureBakeryEntities(modelBuilder);
+
+    // 2. THE TYPE-FIXER: Fix Oracle-unsupported types
+    foreach (var entity in modelBuilder.Model.GetEntityTypes())
+    {
+        foreach (var property in entity.GetProperties())
         {
-            base.OnModelCreating(modelBuilder);
-
-            // 1. Apply existing configurations for Users, Orders, etc.
-            ConfigureExistingEntities(modelBuilder);
-
-            // 2. Apply identity configurations for new Bakery entities
-            ConfigureBakeryEntities(modelBuilder);
-
-            // 3. THE "QUOTE-KILLER": Force all names to UPPERCASE
-            // This allows you to query in DBeaver without using double quotes.
-            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            // Convert C# bool to Oracle NUMBER(1)
+            if (property.ClrType == typeof(bool))
             {
-                // Set Table Name to UPPERCASE
-                var tableName = entity.GetTableName()?.ToUpper();
-                entity.SetTableName(tableName);
-
-                foreach (var property in entity.GetProperties())
-                {
-                    // Set Column Name to UPPERCASE
-                    property.SetColumnName(property.GetColumnName().ToUpper());
-                }
-
-                foreach (var key in entity.GetKeys())
-                    key.SetName(key.GetName().ToUpper());
-
-                foreach (var fk in entity.GetForeignKeys())
-                    fk.SetConstraintName(fk.GetConstraintName().ToUpper());
-
-                foreach (var index in entity.GetIndexes())
-                    index.SetDatabaseName(index.GetDatabaseName().ToUpper());
+                property.SetColumnType("NUMBER(1)");
+            }
+            
+            // Convert C# decimal to Oracle NUMBER(18,2)
+            if (property.ClrType == typeof(decimal))
+            {
+                property.SetColumnType("NUMBER(18,2)");
             }
         }
+    }
+
+    // 3. THE QUOTE-KILLER: Force all names to UPPERCASE
+    foreach (var entity in modelBuilder.Model.GetEntityTypes())
+    {
+        entity.SetTableName(entity.GetTableName()?.ToUpper());
+
+        foreach (var property in entity.GetProperties())
+        {
+            property.SetColumnName(property.GetColumnName().ToUpper());
+        }
+
+        foreach (var key in entity.GetKeys())
+            key.SetName(key.GetName().ToUpper());
+
+        foreach (var fk in entity.GetForeignKeys())
+            fk.SetConstraintName(fk.GetConstraintName().ToUpper());
+
+        foreach (var index in entity.GetIndexes())
+            index.SetDatabaseName(index.GetDatabaseName().ToUpper());
+    }
+}
 
         private void ConfigureBakeryEntities(ModelBuilder modelBuilder)
         {
